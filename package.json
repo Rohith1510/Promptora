@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@openzeppelin/contracts": "^5.3.0",
     "@semaphore-protocol/contracts": "^3.4.0",
     "@semaphore-protocol/identity": "^3.4.0",
     "@semaphore-protocol/proof": "^3.4.0",

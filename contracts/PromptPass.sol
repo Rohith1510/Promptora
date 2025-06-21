@@ -1,27 +1,26 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@thirdweb-dev/contracts/base/ERC1155Base.sol";
-import "@thirdweb-dev/contracts/extension/Permissions.sol";
+import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract PromptPass is ERC1155Base, Permissions {
+contract PromptPass is ERC1155, AccessControl {
+    using Counters for Counters.Counter;
+    
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     
     uint256 public constant PROMPT_PASS_ID = 1;
     uint256 public constant MAX_SUPPLY = 10000;
     
     mapping(address => bool) public hasMinted;
+    Counters.Counter private _tokenIds;
     
     event PromptPassMinted(address indexed to, uint256 tokenId, uint256 amount);
     
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        address _royaltyRecipient,
-        uint128 _royaltyBps
-    ) ERC1155Base(_name, _symbol, _royaltyRecipient, _royaltyBps) {
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(MINTER_ROLE, msg.sender);
+    constructor() ERC1155("") {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(MINTER_ROLE, msg.sender);
     }
     
     function mintPromptPass() external {
@@ -39,6 +38,10 @@ contract PromptPass is ERC1155Base, Permissions {
     }
     
     function totalSupply(uint256 tokenId) public view returns (uint256) {
-        return _totalSupply[tokenId];
+        return 0; // ERC1155 doesn't have totalSupply, implement if needed
+    }
+    
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155, AccessControl) returns (bool) {
+        return super.supportsInterface(interfaceId);
     }
 } 

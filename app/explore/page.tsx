@@ -44,19 +44,49 @@ export default function ExplorePromptsPage() {
   const [mintSuccess, setMintSuccess] = useState(false)
   const [mintError, setMintError] = useState("")
   const address = useAddress()
-  const { contract: tipContract } = useContract(TIPPING_CONTRACT)
+  
+  // Only initialize contracts if addresses are provided
+  const { contract: tipContract } = useContract(TIPPING_CONTRACT || undefined)
   const { mutateAsync: tipPrompt } = useContractWrite(tipContract, "tipPrompt")
-  const { contract: passContract } = useContract(PROMPT_PASS_CONTRACT, "edition-drop")
+  const { contract: passContract } = useContract(PROMPT_PASS_CONTRACT || undefined, "edition-drop")
   const { data: nftBalance, refetch: refetchNFT } = useNFTBalance(passContract, address, PROMPT_PASS_TOKEN_ID)
   const { mutateAsync: claimNFT } = useContractWrite(passContract, "claim")
 
   useEffect(() => {
     async function fetchPrompts() {
       setLoading(true)
-      const res = await fetch("/api/prompts")
-      const data = await res.json()
-      setPrompts(data)
-      setLoading(false)
+      try {
+        const res = await fetch("/api/prompts")
+        const data = await res.json()
+        setPrompts(data)
+      } catch (error) {
+        console.error("Failed to fetch prompts:", error)
+        // Use mock data if API fails
+        setPrompts([
+          {
+            promptId: 'abc123',
+            title: 'Generate a viral AI meme',
+            prompt: 'Create a meme that will go viral on Twitter.',
+            tags: ['#meme', '#viral'],
+            premium: true,
+            imageUrl: 'ipfs://QmExampleImage1',
+            votes: 12,
+            creator: '0x123...'
+          },
+          {
+            promptId: 'def456',
+            title: 'Write a professional resume',
+            prompt: 'Prompt for ChatGPT to write a resume.',
+            tags: ['#resume', '#career'],
+            premium: false,
+            imageUrl: 'ipfs://QmExampleImage2',
+            votes: 8,
+            creator: '0x456...'
+          }
+        ])
+      } finally {
+        setLoading(false)
+      }
     }
     fetchPrompts()
   }, [])
@@ -97,6 +127,11 @@ export default function ExplorePromptsPage() {
   }
 
   async function handleTip(prompt: Prompt) {
+    if (!TIPPING_CONTRACT) {
+      alert("Tipping contract not deployed yet!")
+      return
+    }
+    
     setTipState(s => ({ ...s, [prompt.promptId]: { ...s[prompt.promptId], loading: true, error: "", success: false } }))
     try {
       if (!tipPrompt) throw new Error("Contract not ready")
@@ -112,6 +147,11 @@ export default function ExplorePromptsPage() {
   }
 
   async function handleMint() {
+    if (!PROMPT_PASS_CONTRACT) {
+      alert("PromptPass contract not deployed yet!")
+      return
+    }
+    
     setMinting(true)
     setMintError("")
     setMintSuccess(false)
