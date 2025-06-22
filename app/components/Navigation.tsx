@@ -3,7 +3,7 @@
 import { ConnectWallet } from './ConnectWallet'
 import { useWallet } from './ThirdwebProvider'
 import Link from 'next/link'
-import { Sparkles } from 'lucide-react'
+import { Sparkles, Bot } from 'lucide-react'
 
 export function Navigation() {
   const { account } = useWallet()
@@ -24,6 +24,10 @@ export function Navigation() {
             </Link>
             <Link href="/submit" className="text-gray-600 hover:text-gray-900 transition-colors">
               Submit
+            </Link>
+            <Link href="/bhindi-agent" className="flex items-center space-x-1 text-gray-600 hover:text-gray-900 transition-colors">
+              <Bot className="h-4 w-4" />
+              <span>Bhindi Agent</span>
             </Link>
             {account && (
               <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 transition-colors">

@@ -8,6 +8,7 @@ import fetch from 'node-fetch'
 // GOOGLE_SHEET_ID
 // DISCORD_WEBHOOK_URL (or SLACK_WEBHOOK_URL)
 // HUGGINGFACE_API_KEY
+// BHINDI_API_KEY
 
 // Google Sheets setup
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
@@ -84,14 +85,61 @@ async function huggingFaceModeration(content: string) {
   }
 }
 
+// Bhindi AI API integration (for Bhindi track)
+async function bhindiAIModeration(content: string) {
+  try {
+    const response = await fetch(
+      "https://api.bhindi.ai/v1/moderate",
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.BHINDI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+        body: JSON.stringify({ 
+          text: content,
+          options: {
+            categories: ['hate', 'violence', 'harassment', 'self_harm', 'sexual', 'illegal'],
+            threshold: 0.7
+          }
+        }),
+      }
+    );
+    
+    const result = await response.json();
+    
+    return {
+      flagged: result.flagged || false,
+      categories: result.categories || {},
+      confidence: result.confidence || 0,
+      provider: 'Bhindi AI'
+    };
+  } catch (error) {
+    console.error('Bhindi AI moderation error:', error);
+    // Fallback to Hugging Face
+    return await huggingFaceModeration(content);
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { title, prompt, tags, premium, imageUrl } = await req.json()
+    const { title, prompt, wallet } = await req.json()
     const promptId = Math.random().toString(36).substring(2, 10) // simple unique id
 
-    // Use Hugging Face moderation only
-    const moderationResult = await huggingFaceModeration(`${title}\n${prompt}`)
+    // Choose your moderation provider:
+    // Option 1: Bhindi AI API (for Bhindi track)
+    const moderationResult = await bhindiAIModeration(`${title}\n${prompt}`)
     
+    // Option 2: Hugging Face (FREE)
+    // const moderationResult = await huggingFaceModeration(`${title}\n${prompt}`)
+    
+    // Option 3: Local moderation (completely free, no API key needed)
+    // const moderationResult = localModeration(`${title}\n${prompt}`)
+    
+    // Option 4: OpenAI (paid, but very cheap)
+    // const modRes = await openai.createModeration({ input: `${title}\n${prompt}` })
+    // const moderationResult = { flagged: modRes.data.results[0].flagged, categories: modRes.data.results[0].categories }
+
     // 1. If flagged, alert Discord/Slack and return error
     if (moderationResult.flagged) {
       const flaggedReason = JSON.stringify(moderationResult.categories)
@@ -118,9 +166,7 @@ export async function POST(req: NextRequest) {
         promptId,
         title,
         prompt,
-        tags ? tags.join(', ') : '',
-        premium ? 'TRUE' : 'FALSE',
-        imageUrl || '',
+        wallet ? wallet.join(', ') : '',
         new Date().toISOString()
       ]
       

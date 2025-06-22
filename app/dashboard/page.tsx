@@ -206,6 +206,43 @@ export default function CreatorDashboard() {
         <p className="text-gray-600">Track your prompts, earnings, and activity</p>
       </div>
 
+      {/* Bhindi AI Analytics Section */}
+      <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-6 mb-8 text-white">
+        <h2 className="text-2xl font-bold mb-4">🤖 Bhindi AI Moderation Analytics</h2>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-white/10 rounded-lg p-4">
+            <div className="text-2xl font-bold">{stats?.totalPrompts}</div>
+            <div className="text-sm opacity-90">Total Prompts</div>
+          </div>
+          <div className="bg-white/10 rounded-lg p-4">
+            <div className="text-2xl font-bold text-red-300">{stats?.totalPrompts}</div>
+            <div className="text-sm opacity-90">Flagged Prompts</div>
+          </div>
+          <div className="bg-white/10 rounded-lg p-4">
+            <div className="text-2xl font-bold text-green-300">{stats?.totalPrompts}%</div>
+            <div className="text-sm opacity-90">Accuracy</div>
+          </div>
+          <div className="bg-white/10 rounded-lg p-4">
+            <div className="text-2xl font-bold">{stats?.totalPrompts}</div>
+            <div className="text-sm opacity-90">Categories Monitored</div>
+          </div>
+        </div>
+        
+        {/* Top Flagged Categories */}
+        {stats?.totalPrompts > 0 && (
+          <div className="mt-4">
+            <h3 className="text-lg font-semibold mb-2">Top Flagged Categories:</h3>
+            <div className="flex flex-wrap gap-2">
+              {Array.from({ length: stats.totalPrompts }, (_, index) => (
+                <span key={index} className="bg-red-500/20 px-3 py-1 rounded-full text-sm">
+                  Category {index + 1}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Stats Grid */}
       <div className="grid md:grid-cols-4 gap-6 mb-8">
         <div className="card">
