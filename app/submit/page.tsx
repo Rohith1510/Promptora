@@ -70,8 +70,11 @@ export default function SubmitPromptPage() {
           Back to Home
         </Link>
       </div>
-
-      <h1 className="text-3xl font-bold mb-6">Submit a Prompt</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-6">
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-secondary-600">
+          Submit a Prompt
+        </span>
+      </h1>
       <form className="space-y-6" onSubmit={handleSubmit}>
         <div>
           <label className="block mb-1 font-medium">Title</label>

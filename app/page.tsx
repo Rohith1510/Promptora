@@ -5,6 +5,7 @@ import { useWallet } from './components/ThirdwebProvider'
 import Link from 'next/link'
 import { Sparkles, Shield, Coins, Users, ArrowRight, Star, Lock } from 'lucide-react'
 import { HeroAnimation } from './components/HeroAnimation'
+import PromptPassMinter from './components/PromptPassMinter'
 
 export default function Home() {
   const { account } = useWallet()
@@ -26,7 +27,7 @@ export default function Home() {
             AI Prompts
             </span>
           </h1>
-            <p className="text-muted-foreground md:text-xl text-gray-500">
+            <p className="text-muted-foreground md:text-lg text-gray-500">
               Submit, explore, and vote on high-value AI prompts. Unlock premium content with NFTs, tip creators in ETH, and enjoy Sybil-resistant ZK voting—all backend-free and automated by Bhindi AI.
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
@@ -46,6 +47,23 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Prompt Pass Section */}
+      {account && (
+        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-secondary-50 to-primary-50">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                Unlock Premium Content
+              </h2>
+              <p className="text-gray-600 text-lg">
+                Get your free Prompt Pass NFT to access exclusive AI prompts and features
+              </p>
+            </div>
+            <PromptPassMinter />
+          </div>
+        </section>
+      )}
 
       {/* Features Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
