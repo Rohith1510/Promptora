@@ -1,8 +1,9 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Lock, Star, Coins, ThumbsUp, X } from "lucide-react"
-import { useAddress, useContract, useContractWrite, useNFTBalance } from "@thirdweb-dev/react"
+import { Lock, Star, Coins, ThumbsUp, X, ArrowLeft } from "lucide-react"
+import { useWallet } from "../components/ThirdwebProvider"
+import Link from "next/link"
 
 interface Prompt {
   promptId: string
@@ -29,10 +30,6 @@ type TipState = {
   error: string
 }
 
-const TIPPING_CONTRACT = process.env.NEXT_PUBLIC_PROMPT_TIPPING_CONTRACT_ADDRESS || ""
-const PROMPT_PASS_CONTRACT = process.env.NEXT_PUBLIC_PROMPT_PASS_CONTRACT_ADDRESS || ""
-const PROMPT_PASS_TOKEN_ID = "1"
-
 export default function ExplorePromptsPage() {
   const [prompts, setPrompts] = useState<Prompt[]>([])
   const [search, setSearch] = useState("")
@@ -40,50 +37,48 @@ export default function ExplorePromptsPage() {
   const [loading, setLoading] = useState(true)
   const [voteState, setVoteState] = useState<Record<string, VoteState>>({})
   const [tipState, setTipState] = useState<Record<string, TipState>>({})
-  const [minting, setMinting] = useState(false)
-  const [mintSuccess, setMintSuccess] = useState(false)
-  const [mintError, setMintError] = useState("")
-  const address = useAddress()
-  
-  // Only initialize contracts if addresses are provided
-  const { contract: tipContract } = useContract(TIPPING_CONTRACT || undefined)
-  const { mutateAsync: tipPrompt } = useContractWrite(tipContract, "tipPrompt")
-  const { contract: passContract } = useContract(PROMPT_PASS_CONTRACT || undefined, "edition-drop")
-  const { data: nftBalance, refetch: refetchNFT } = useNFTBalance(passContract, address, PROMPT_PASS_TOKEN_ID)
-  const { mutateAsync: claimNFT } = useContractWrite(passContract, "claim")
+  const { account } = useWallet()
 
   useEffect(() => {
     async function fetchPrompts() {
       setLoading(true)
       try {
-        const res = await fetch("/api/prompts")
-        const data = await res.json()
-        setPrompts(data)
-      } catch (error) {
-        console.error("Failed to fetch prompts:", error)
-        // Use mock data if API fails
-        setPrompts([
+        // Mock data for now - replace with real API call
+        const mockPrompts: Prompt[] = [
           {
-            promptId: 'abc123',
-            title: 'Generate a viral AI meme',
-            prompt: 'Create a meme that will go viral on Twitter.',
-            tags: ['#meme', '#viral'],
-            premium: true,
-            imageUrl: 'ipfs://QmExampleImage1',
-            votes: 12,
-            creator: '0x123...'
+            promptId: "1",
+            title: "Generate a viral AI meme",
+            prompt: "Create a funny meme about AI that would go viral on social media",
+            tags: ["AI", "Meme", "Viral"],
+            premium: false,
+            imageUrl: "ipfs://QmExample1",
+            votes: 42,
+            creator: "0x1234...5678"
           },
           {
-            promptId: 'def456',
-            title: 'Write a professional resume',
-            prompt: 'Prompt for ChatGPT to write a resume.',
-            tags: ['#resume', '#career'],
+            promptId: "2",
+            title: "Professional resume writer",
+            prompt: "Write a professional resume for a software engineer with 5 years experience",
+            tags: ["Resume", "Professional", "Career"],
+            premium: true,
+            imageUrl: "ipfs://QmExample2",
+            votes: 28,
+            creator: "0x8765...4321"
+          },
+          {
+            promptId: "3",
+            title: "Midjourney logo generator",
+            prompt: "Create a modern logo for a tech startup using Midjourney",
+            tags: ["Logo", "Midjourney", "Design"],
             premium: false,
-            imageUrl: 'ipfs://QmExampleImage2',
-            votes: 8,
-            creator: '0x456...'
+            imageUrl: "ipfs://QmExample3",
+            votes: 35,
+            creator: "0xabcd...efgh"
           }
-        ])
+        ]
+        setPrompts(mockPrompts)
+      } catch (error) {
+        console.error('Failed to fetch prompts:', error)
       } finally {
         setLoading(false)
       }
@@ -101,14 +96,8 @@ export default function ExplorePromptsPage() {
   async function handleVote(promptId: string) {
     setVoteState(s => ({ ...s, [promptId]: { loading: true, success: false, error: "" } }))
     try {
-      const proof = "mock-proof"
-      const nullifierHash = "mock-nullifierHash-" + promptId
-      const res = await fetch("/api/vote", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ promptId, nullifierHash, proof }),
-      })
-      if (!res.ok) throw new Error("Failed to vote")
+      // Mock vote - replace with real API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
       setPrompts(ps => ps.map(p => p.promptId === promptId ? { ...p, votes: p.votes + 1 } : p))
       setVoteState(s => ({ ...s, [promptId]: { loading: false, success: true, error: "" } }))
     } catch (err: any) {
@@ -119,78 +108,73 @@ export default function ExplorePromptsPage() {
   function openTip(promptId: string) {
     setTipState(s => ({ ...s, [promptId]: { open: true, amount: "0.001", loading: false, success: false, error: "" } }))
   }
+  
   function closeTip(promptId: string) {
     setTipState(s => ({ ...s, [promptId]: { ...s[promptId], open: false } }))
   }
+  
   function setTipAmount(promptId: string, amount: string) {
     setTipState(s => ({ ...s, [promptId]: { ...s[promptId], amount } }))
   }
 
   async function handleTip(prompt: Prompt) {
-    if (!TIPPING_CONTRACT) {
-      alert("Tipping contract not deployed yet!")
-      return
-    }
-    
     setTipState(s => ({ ...s, [prompt.promptId]: { ...s[prompt.promptId], loading: true, error: "", success: false } }))
     try {
-      if (!tipPrompt) throw new Error("Contract not ready")
-      const amount = tipState[prompt.promptId]?.amount || "0.001"
-      await tipPrompt({
-        args: [prompt.promptId, prompt.creator],
-        overrides: { value: BigInt(Math.floor(Number(amount) * 1e18)) },
-      })
+      // Mock tip - replace with real contract call
+      await new Promise(resolve => setTimeout(resolve, 2000))
       setTipState(s => ({ ...s, [prompt.promptId]: { ...s[prompt.promptId], loading: false, success: true, error: "" } }))
     } catch (err: any) {
       setTipState(s => ({ ...s, [prompt.promptId]: { ...s[prompt.promptId], loading: false, success: false, error: err.message || "Tip failed" } }))
     }
   }
 
-  async function handleMint() {
-    if (!PROMPT_PASS_CONTRACT) {
-      alert("PromptPass contract not deployed yet!")
-      return
-    }
-    
-    setMinting(true)
-    setMintError("")
-    setMintSuccess(false)
-    try {
-      if (!claimNFT) throw new Error("Contract not ready")
-      await claimNFT({ args: [address, PROMPT_PASS_TOKEN_ID, 1] })
-      setMintSuccess(true)
-      await refetchNFT()
-    } catch (err: any) {
-      setMintError(err.message || "Mint failed")
-    } finally {
-      setMinting(false)
-    }
-  }
-
-  const ownsPass = nftBalance && nftBalance.displayValue && nftBalance.displayValue !== "0"
-
   return (
-    <div className="max-w-5xl mx-auto py-12 px-4">
-      <h1 className="text-3xl font-bold mb-6">Explore Prompts</h1>
-      <div className="flex flex-col sm:flex-row gap-4 mb-8">
+    <div className="max-w-7xl mx-auto py-12 px-4">
+      {/* Back Button */}
+      <div className="mb-6">
+        <Link 
+          href="/" 
+         className="inline-flex items-center text-gray-600 hover:text-gray-500 transition-colors text-white"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2 text-white" />
+          Back to Home
+        </Link>
+      </div>
+
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-white-900 mb-2">Explore Prompts</h1>
+        <p className="text-gray-300">Discover and vote on the best AI prompts</p>
+      </div>
+
+      {/* Search and Filter */}
+      <div className="mb-8 flex flex-col sm:flex-row gap-4">
         <input
-          className="input-field flex-1"
+          type="text"
           placeholder="Search prompts..."
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
+          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
         />
-        <select className="input-field w-40" value={filter} onChange={e => setFilter(e.target.value as any)}>
-          <option value="all">All</option>
-          <option value="premium">Premium</option>
-          <option value="free">Free</option>
+        <select
+          value={filter}
+          onChange={(e) => setFilter(e.target.value as "all" | "premium" | "free")}
+          className="px-4 py-2 text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        >
+          <option value="all">All Prompts</option>
+          <option value="premium">Premium Only</option>
+          <option value="free">Free Only</option>
         </select>
       </div>
+
+      {/* Prompts Grid */}
       {loading ? (
-        <div>Loading prompts...</div>
+        <div className="text-center py-12">
+          <p className="text-gray-600">Loading prompts...</p>
+        </div>
       ) : (
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map(prompt => {
-            const isPremiumLocked = prompt.premium && !ownsPass
+            const isPremiumLocked = prompt.premium && !account // Simplified premium logic
             return (
               <div key={prompt.promptId} className="card relative">
                 {prompt.premium && (
@@ -228,6 +212,7 @@ export default function ExplorePromptsPage() {
                 {voteState[prompt.promptId]?.error && (
                   <div className="text-red-600 text-sm mb-2">{voteState[prompt.promptId].error}</div>
                 )}
+                
                 {/* Tip UI */}
                 {tipState[prompt.promptId]?.open ? (
                   <div className="mb-2 p-3 rounded-lg border border-gray-200 bg-gray-50 relative">
@@ -258,22 +243,15 @@ export default function ExplorePromptsPage() {
                     <Coins className="h-4 w-4" /> Tip Creator
                   </button>
                 )}
+                
                 {/* NFT Gating for premium prompts */}
                 {isPremiumLocked && (
                   <div className="absolute inset-0 bg-white/90 flex flex-col items-center justify-center rounded-xl z-10">
                     <Lock className="h-8 w-8 text-secondary-600 mb-2" />
-                    <span className="text-secondary-700 font-semibold mb-2">Unlock with PromptPass NFT</span>
-                    <button
-                      className="btn-primary"
-                      disabled={minting}
-                      onClick={handleMint}
-                    >
-                      {minting ? "Minting..." : "Mint PromptPass"}
-                    </button>
-                    {mintSuccess && <div className="text-green-600 text-sm mt-2">Minted! Refresh to unlock.</div>}
-                    {mintError && <div className="text-red-600 text-sm mt-2">{mintError}</div>}
+                    <span className="text-secondary-700 font-semibold mb-2">Connect wallet to unlock</span>
                   </div>
                 )}
+                
                 {/* Show prompt text only if not locked */}
                 {!isPremiumLocked && (
                   <div className="mt-2 text-gray-700 text-sm whitespace-pre-line">

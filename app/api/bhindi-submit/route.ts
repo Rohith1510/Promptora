@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { OpenAIApi, Configuration } from 'openai'
 import { google } from 'googleapis'
 import fetch from 'node-fetch'
 
 // --- ENV VARS NEEDED ---
-// OPENAI_API_KEY
 // GOOGLE_SERVICE_ACCOUNT_EMAIL
 // GOOGLE_PRIVATE_KEY
 // GOOGLE_SHEET_ID
 // DISCORD_WEBHOOK_URL (or SLACK_WEBHOOK_URL)
-
-const openai = new OpenAIApi(new Configuration({ apiKey: process.env.OPENAI_API_KEY }))
+// HUGGINGFACE_API_KEY
 
 // Google Sheets setup
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
@@ -48,7 +45,7 @@ function localModeration(content: string) {
   };
 }
 
-// Free Hugging Face moderation alternative
+// Hugging Face moderation
 async function huggingFaceModeration(content: string) {
   try {
     const response = await fetch(
@@ -89,24 +86,17 @@ async function huggingFaceModeration(content: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { title, prompt, wallet } = await req.json()
+    const { title, prompt, tags, premium, imageUrl } = await req.json()
     const promptId = Math.random().toString(36).substring(2, 10) // simple unique id
 
-    // Use FREE Hugging Face moderation instead of OpenAI
+    // Use Hugging Face moderation only
     const moderationResult = await huggingFaceModeration(`${title}\n${prompt}`)
     
-    // Or use local moderation (completely free, no API key needed)
-    // const moderationResult = localModeration(`${title}\n${prompt}`)
-    
-    // Or use OpenAI if you have the API key
-    // const modRes = await openai.createModeration({ input: `${title}\n${prompt}` })
-    // const moderationResult = { flagged: modRes.data.results[0].flagged, categories: modRes.data.results[0].categories }
-
     // 1. If flagged, alert Discord/Slack and return error
     if (moderationResult.flagged) {
       const flaggedReason = JSON.stringify(moderationResult.categories)
       const alertMsg = {
-        content: `🚨 Prompt flagged by moderation!\nTitle: ${title}\nWallet: ${wallet}\nReason: ${flaggedReason}`
+        content: `🚨 Prompt flagged by moderation!\nTitle: ${title}\nReason: ${flaggedReason}`
       }
       if (process.env.DISCORD_WEBHOOK_URL) {
         await fetch(process.env.DISCORD_WEBHOOK_URL, {
@@ -115,32 +105,49 @@ export async function POST(req: NextRequest) {
           body: JSON.stringify(alertMsg)
         })
       }
-      // (Optional: Add Slack webhook support here)
       return NextResponse.json({ error: 'Prompt flagged by moderation', reason: flaggedReason }, { status: 400 })
     }
 
-    // 3. If passed, add to Google Sheet
+    // 2. If passed, add to Google Sheet
     try {
+      // Use default sheet name (Sheet1) instead of "Prompts"
+      const sheetName = 'Sheet1'
+      const range = `${sheetName}!A:G`
+      
       const row = [
         promptId,
         title,
         prompt,
-        wallet,
-        '',
-        'FALSE',
+        tags ? tags.join(', ') : '',
+        premium ? 'TRUE' : 'FALSE',
+        imageUrl || '',
         new Date().toISOString()
       ]
+      
+      console.log('Attempting to write to Google Sheet:', {
+        spreadsheetId: process.env.GOOGLE_SHEET_ID,
+        range,
+        row
+      })
+      
       await sheets.spreadsheets.values.append({
         spreadsheetId: process.env.GOOGLE_SHEET_ID,
-        range: 'Prompts!A:G',
+        range,
         valueInputOption: 'USER_ENTERED',
         requestBody: { values: [row] }
       })
+      
       return NextResponse.json({ success: true, promptId })
     } catch (err) {
-      return NextResponse.json({ error: 'Failed to write to Google Sheet', details: err.message }, { status: 500 })
+      console.error('Google Sheets error:', err)
+      return NextResponse.json({ 
+        error: 'Failed to write to Google Sheet', 
+        details: (err as Error).message,
+        suggestion: 'Make sure your Google Sheet has a sheet named "Sheet1" and the service account has write permissions'
+      }, { status: 500 })
     }
   } catch (err) {
-    return NextResponse.json({ error: 'Failed to process request', details: err.message }, { status: 500 })
+    console.error('API error:', err)
+    return NextResponse.json({ error: 'Failed to process request', details: (err as Error).message }, { status: 500 })
   }
 } 

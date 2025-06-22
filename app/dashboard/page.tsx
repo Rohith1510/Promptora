@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useAddress } from "@thirdweb-dev/react"
+import { useWallet } from "../components/ThirdwebProvider"
 import { 
   TrendingUp, 
   Coins, 
@@ -10,7 +10,8 @@ import {
   Calendar,
   Eye,
   DollarSign,
-  Activity
+  Activity,
+  ArrowLeft
 } from "lucide-react"
 import Link from "next/link"
 
@@ -48,7 +49,7 @@ interface EarningsData {
 }
 
 export default function CreatorDashboard() {
-  const address = useAddress()
+  const { account } = useWallet()
   const [stats, setStats] = useState<CreatorStats | null>(null)
   const [prompts, setPrompts] = useState<UserPrompt[]>([])
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([])
@@ -56,7 +57,7 @@ export default function CreatorDashboard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!address) return
+    if (!account) return
     
     async function fetchDashboardData() {
       setLoading(true)
@@ -151,13 +152,17 @@ export default function CreatorDashboard() {
     }
     
     fetchDashboardData()
-  }, [address])
+  }, [account])
 
-  if (!address) {
+  if (!account) {
     return (
       <div className="max-w-7xl mx-auto py-12 px-4">
         <div className="text-center">
-          <h1 className="text-3xl font-bold mb-4">Creator Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-secondary-600">
+              Creator Dashboard
+            </span>
+          </h1>
           <p className="text-gray-600">Please connect your wallet to view your creator dashboard.</p>
         </div>
       </div>
@@ -168,8 +173,12 @@ export default function CreatorDashboard() {
     return (
       <div className="max-w-7xl mx-auto py-12 px-4">
         <div className="text-center">
-          <h1 className="text-3xl font-bold mb-4">Creator Dashboard</h1>
-          <p className="text-gray-600">Loading your stats...</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-secondary-600">
+              Creator Dashboard
+            </span>
+          </h1>
+          <p className="text-gray-600">Loading your dashboard...</p>
         </div>
       </div>
     )
@@ -177,14 +186,27 @@ export default function CreatorDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto py-12 px-4">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Creator Dashboard</h1>
-        <Link href="/submit" className="btn-primary">
-          Submit New Prompt
+      {/* Back Button */}
+      <div className="mb-6">
+        <Link 
+          href="/" 
+          className="inline-flex items-center text-gray-600 hover:text-gray-500 transition-colors text-white"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2 text-white" />
+          Back to Home
         </Link>
       </div>
 
-      {/* Stats Overview */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-secondary-600">
+              Creator Dashboard
+            </span>
+          </h1>
+        <p className="text-gray-600">Track your prompts, earnings, and activity</p>
+      </div>
+
+      {/* Stats Grid */}
       <div className="grid md:grid-cols-4 gap-6 mb-8">
         <div className="card">
           <div className="flex items-center">
@@ -273,8 +295,8 @@ export default function CreatorDashboard() {
                       </div>
                     </div>
                   </div>
-                  <div className="text-right text-sm text-gray-600">
-                    <div>{new Date(prompt.createdAt).toLocaleDateString()}</div>
+                  <div className="text-sm text-gray-500">
+                    {new Date(prompt.createdAt).toLocaleDateString()}
                   </div>
                 </div>
               ))}
@@ -288,29 +310,23 @@ export default function CreatorDashboard() {
           <div className="space-y-4">
             {recentActivity.map(activity => (
               <div key={activity.id} className="flex items-start space-x-3">
-                <div className={`p-2 rounded-full ${
-                  activity.type === 'tip' ? 'bg-green-100' : 'bg-blue-100'
-                }`}>
+                <div className="p-2 bg-gray-100 rounded-lg">
                   {activity.type === 'tip' ? (
                     <Coins className="h-4 w-4 text-green-600" />
                   ) : (
                     <ThumbsUp className="h-4 w-4 text-blue-600" />
                   )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">
-                    {activity.type === 'tip' ? 'Tip received' : 'New vote'}
+                <div className="flex-1">
+                  <p className="text-sm font-medium">
+                    {activity.type === 'tip' ? 'Tip received' : 'Vote received'}
                   </p>
-                  <p className="text-sm text-gray-600 truncate">
-                    {activity.promptTitle}
-                  </p>
-                  {activity.type === 'tip' && activity.amount && (
-                    <p className="text-sm text-green-600 font-medium">
-                      +{activity.amount} ETH
-                    </p>
+                  <p className="text-xs text-gray-600">{activity.promptTitle}</p>
+                  {activity.amount && (
+                    <p className="text-xs text-green-600">+{activity.amount} ETH</p>
                   )}
                   <p className="text-xs text-gray-500">
-                    {new Date(activity.timestamp).toLocaleString()}
+                    {new Date(activity.timestamp).toLocaleDateString()}
                   </p>
                 </div>
               </div>

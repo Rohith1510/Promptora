@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { useStorageUpload } from "@thirdweb-dev/react"
+import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
 
 export default function SubmitPromptPage() {
   const [title, setTitle] = useState("")
@@ -12,7 +13,14 @@ export default function SubmitPromptPage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState("")
   const [error, setError] = useState("")
-  const { mutateAsync: upload } = useStorageUpload()
+
+  // Mock upload function - replace with real upload logic later
+  async function mockUpload(file: File): Promise<string> {
+    // Simulate upload delay
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    // Return a mock IPFS URL
+    return `ipfs://QmMock${Date.now()}`
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -22,8 +30,7 @@ export default function SubmitPromptPage() {
     let imageUrl = ""
     try {
       if (image) {
-        const uris = await upload({ data: [image] })
-        imageUrl = uris[0]
+        imageUrl = await mockUpload(image)
       }
       // Send to Bhindi webhook (placeholder)
       const res = await fetch("/api/bhindi-submit", {
@@ -53,6 +60,17 @@ export default function SubmitPromptPage() {
 
   return (
     <div className="max-w-xl mx-auto py-16 px-4">
+      {/* Back Button */}
+      <div className="mb-6">
+        <Link 
+          href="/" 
+          className="inline-flex items-center text-gray-600 hover:text-gray-500 transition-colors text-white"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2 text-white" />
+          Back to Home
+        </Link>
+      </div>
+
       <h1 className="text-3xl font-bold mb-6">Submit a Prompt</h1>
       <form className="space-y-6" onSubmit={handleSubmit}>
         <div>

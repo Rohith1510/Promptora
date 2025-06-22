@@ -1,55 +1,36 @@
 'use client'
 
-import { ConnectWallet, useAddress } from '@thirdweb-dev/react'
+import { ConnectWallet } from './components/ConnectWallet'
+import { useWallet } from './components/ThirdwebProvider'
 import Link from 'next/link'
 import { Sparkles, Shield, Coins, Users, ArrowRight, Star, Lock } from 'lucide-react'
+import { HeroAnimation } from './components/HeroAnimation'
 
 export default function Home() {
-  const address = useAddress()
+  const { account } = useWallet()
 
   return (
     <div className="min-h-screen gradient-bg">
-      {/* Navigation */}
-      <nav className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
-              <Sparkles className="h-8 w-8 text-primary-600" />
-              <span className="text-xl font-bold text-gray-900">Promptora</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link href="/explore" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Explore
-              </Link>
-              <Link href="/submit" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Submit
-              </Link>
-              {address && (
-                <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 transition-colors">
-                  Dashboard
-                </Link>
-              )}
-              <ConnectWallet />
-            </div>
-          </div>
-        </div>
-      </nav>
-
       {/* Hero Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-            The Future of
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-secondary-600">
-              {' '}AI Prompts
+      <section className="w-full flex items-center justify-center py-16">
+        <div className="container px-4 md:px-6 flex flex-col lg:flex-row items-center gap-10">
+          <div className="flex flex-col space-y-6 lg:w-1/2">
+            <div className="inline-block">
+              <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-primary text-primary-foreground text-gray-500">
+                <Sparkles className="mr-1 h-3 w-3" />
+                ZK-Powered AI Prompt Marketplace
+              </div>
+            </div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-6 tracking-tighter sm:text-5xl md:text-6xl">
+            Discover, Unlock, and Tip <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-secondary-600">
+            AI Prompts
             </span>
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Discover, create, and earn from AI prompts with zero-knowledge voting, 
-            NFT-gated premium access, and on-chain tipping on Base network.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/explore" className="btn-primary inline-flex items-center">
+            <p className="text-muted-foreground md:text-xl text-gray-500">
+              Submit, explore, and vote on high-value AI prompts. Unlock premium content with NFTs, tip creators in ETH, and enjoy Sybil-resistant ZK voting—all backend-free and automated by Bhindi AI.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link href="/explore" className="btn-primary inline-flex items-center">
               Explore Prompts
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
@@ -57,6 +38,11 @@ export default function Home() {
               Submit Prompt
               <Sparkles className="ml-2 h-4 w-4" />
             </Link>
+
+            </div>
+          </div>
+          <div className="w-auto lg:w-1/2 flex justify-center">
+            <HeroAnimation />
           </div>
         </div>
       </section>
