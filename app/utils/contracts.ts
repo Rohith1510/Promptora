@@ -1,5 +1,12 @@
 import { ethers } from 'ethers'
 
+// TypeScript declarations for ethereum
+declare global {
+  interface Window {
+    ethereum?: any
+  }
+}
+
 // Contract ABIs
 export const PROMPT_TIPPING_ABI = [
   "function tipPrompt(string memory promptId, address creator) external payable",

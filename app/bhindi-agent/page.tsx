@@ -1,5 +1,7 @@
 "use client"
 
+import { ArrowLeft } from "lucide-react"
+import Link from "next/link"
 import { useState } from "react"
 
 interface ContentAnalysis {
@@ -72,8 +74,12 @@ export default function BhindiAgentPage() {
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
       <div className="text-center mb-8">
-        <h1 className="text-4xl text-white font-bold mb-2">🤖 Bhindi Agent</h1>
-        <p className="text-black">AI-powered content analysis and moderation</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-secondary-600">
+            Bhindi Agent
+          </span>
+        </h1>
+        <p className="text-gray-500">AI-powered content analysis and moderation</p>
       </div>
 
       {/* Input Section */}
