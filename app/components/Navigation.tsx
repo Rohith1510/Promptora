@@ -4,6 +4,7 @@ import { ConnectWallet } from './ConnectWallet'
 import { useWallet } from './ThirdwebProvider'
 import Link from 'next/link'
 import { Sparkles, Bot } from 'lucide-react'
+import Image from 'next/image'
 
 export function Navigation() {
   const { account } = useWallet()
@@ -14,8 +15,13 @@ export function Navigation() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-2">
             <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-              <Sparkles className="h-8 w-8 text-primary-600" />
-              <span className="text-xl font-bold text-gray-900">Promptora</span>
+              <Image 
+                src="/logo.png" 
+                alt="Promptora Logo" 
+                width={42} 
+                height={42} 
+              />
+              <span className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-secondary-600">Promptora</span>
             </Link>
           </div>
           <div className="flex items-center space-x-8">
